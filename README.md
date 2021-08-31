@@ -10,3 +10,4 @@ This firmware requires our bootloader (https://github.com/ultimaterobotics/uECG_
 * PCB design: https://github.com/ultimaterobotics/uECG_pcb
 * NodeJS app for receiving data on PC: https://github.com/ultimaterobotics/uECG_nodejs
 * Android app: https://github.com/ultimaterobotics/uECG_android 
+* previous version of this repository now is located here: https://github.com/ultimaterobotics/uECG_v4_3_all
