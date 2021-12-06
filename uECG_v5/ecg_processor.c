@@ -220,6 +220,7 @@ void r_detector_step(float v)
 		r_detector.dv_p_peak = r_detector.avg_dv_p;
 		r_detector.p_peak_v = v;
 		if(r_detector.dv_n_peak_time < 70) //and if negative was just before - it's R peak
+//		if(r_detector.dv_n_peak_time < 30) //lemur variant
 		{
 			r_detector.R_detected = 1;
 			r_detector.R_time = 0;
@@ -232,6 +233,7 @@ void r_detector_step(float v)
 		r_detector.dv_n_peak = r_detector.avg_dv_n;
 		r_detector.n_peak_v = v;
 		if(r_detector.dv_p_peak_time < 70) //and if positive was just before - it's R peak
+//		if(r_detector.dv_p_peak_time < 30) //lemur variant
 		{
 			r_detector.R_detected = 1;
 			r_detector.R_time = 0;
@@ -242,6 +244,7 @@ void r_detector_step(float v)
 	{ //to make sure detected point is stable, so we can push new RR interval
 		uint32_t ms = millis();
 		if(ms - r_detector.cur_peak_time > 150) //detector is not perfect, so need to ignore multiple detections
+//		if(ms - r_detector.cur_peak_time > 60) //lemur variant
 		{
 			r_detector.prev_peak_time = r_detector.cur_peak_time;
 			r_detector.cur_peak_time = ms;
@@ -252,6 +255,7 @@ void r_detector_step(float v)
 			//indicate detected beat with led
 			if(ecg_params.led_enabled)
 				leds_pulse_default(100);
+//				leds_pulse_default(32); //lemur variant
 		}
 	}
 	
@@ -332,21 +336,25 @@ int process_mcp_data_emg()
 		else if(emg_params.value < thr_1)
 		{
 			float vv = (emg_params.value-thr_0) / (thr_1 - thr_0);
-			leds_set(0, 0, 255.0*vv);
+//			leds_set(0, 0, 255.0*vv);
+			leds_pulse(0, 0, 255.0*vv, 10);
 		}
 		else if(emg_params.value < thr_2)
 		{
 			float vv = (emg_params.value-thr_1) / (thr_2 - thr_1);
-			leds_set(255.0*vv, 0, 255.0);
+//			leds_set(255.0*vv, 0, 255.0);
+			leds_pulse(255.0*vv, 0, 255.0, 10);
 		}
 		else if(emg_params.value < thr_3)
 		{
 			float vv = (emg_params.value-thr_2) / (thr_3 - thr_2);
-			leds_set(255.0*(1.0-vv), 255*vv, 255);
+//			leds_set(255.0*(1.0-vv), 255*vv, 255);
+			leds_pulse(255.0*(1.0-vv), 255*vv, 255, 10);
 		}
 		else
 		{
-			leds_set(0, 255, 255);
+//			leds_set(0, 255, 255);
+			leds_pulse(0, 255, 255, 10);
 		}
 	}
 	//level as uint16 for simple radio transmission

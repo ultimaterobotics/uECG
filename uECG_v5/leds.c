@@ -6,9 +6,53 @@ uint8_t led_driver;
 uint32_t led_driver_mask = 0;
 volatile int led_pulse_length = 0;
 uint8_t led_output_driver_enabled = 1;
-uint8_t led_default_r = 220;
-uint8_t led_default_g = 30;
-uint8_t led_default_b = 250;
+uint8_t led_default_r = 110;
+uint8_t led_default_g = 20;
+uint8_t led_default_b = 125;
+
+int led_pwm_vals[3] = {0, 512, 1023};
+uint16_t pwm_seq[8];
+
+void start_leds_pwm(int ms_length)
+{
+	if(NRF_PWM0->ENABLE)
+	{
+		NRF_PWM0->ENABLE = 0;
+	}
+	NRF_PWM0->PSEL.OUT[3] = 0xFFFFFFFF;
+	for(int x = 0; x < 3; x++)
+	{
+		NRF_PWM0->PSEL.OUT[x] = led_pins[x];
+		pwm_seq[x] = led_pwm_vals[x];
+		pwm_seq[4+x] = 1023;
+	}
+	pwm_seq[3] = 0;
+	pwm_seq[7] = 0;
+	NRF_PWM0->ENABLE = 1;
+	NRF_PWM0->MODE = 0;
+	NRF_PWM0->COUNTERTOP = 1024;
+	NRF_PWM0->PRESCALER = 0;
+	NRF_PWM0->DECODER = 2;
+	NRF_PWM0->LOOP = 0;
+	NRF_PWM0->SEQ[0].PTR = (uint32_t)pwm_seq;
+	NRF_PWM0->SEQ[0].CNT = 8;
+	NRF_PWM0->SEQ[0].REFRESH = 16*ms_length;
+	NRF_PWM0->INTEN = 1<<4; //SEQ0 END
+//	if(ms_length == 0) NRF_PWM0->INTEN = 0;
+	NRF_PWM0->TASKS_SEQSTART[0] = 1;
+	NRF_PWM0->SHORTS = 1; //SEQ0END -> STOP
+//	if(ms_length == 0) NRF_PWM0->SHORTS = 0;
+}
+
+void PWM0_IRQHandler()
+{
+	if(NRF_PWM0->EVENTS_SEQEND[0])
+	{
+		NRF_PWM0->ENABLE = 0;
+		NRF_GPIO->OUTCLR = led_pin_mask[0];
+		NRF_PWM0->EVENTS_SEQEND[0] = 0;
+	}
+}
 
 void start_leds_timer()
 {
@@ -84,30 +128,25 @@ void leds_init(int pin_r, int pin_g, int pin_b, int pin_driver)
 	lp[0] = pin_r;
 	lp[1] = pin_g;
 	lp[2] = pin_b;
-	led_driver = pin_driver;
-	if(pin_driver < 0xFF)
-	{
-		led_driver_mask = 1<<led_driver;
-		NRF_GPIO->DIRSET = led_driver_mask;
-		NRF_GPIO->OUTCLR = led_driver_mask;
-	}
-	
 	for(int x = 0; x < 3; x++)
 	{
 		if(lp[x] < 0) continue;
 		led_pins[x] = lp[x];
 		led_pin_mask[x] = 1<<led_pins[x];
 		NRF_GPIO->DIRSET = led_pin_mask[x];
+		NRF_GPIO->OUTSET = led_pin_mask[x];
 	}	
-	start_leds_timer();
+//	start_leds_timer();
 }
  
 int val_to_cc(int val)
 {
 	int v2 = val*val;
-	v2 >>= 2;
-	if(v2 == 0) v2 = 1;
-	if(v2 > 16384) v2 = 16384; 
+//	v2 >>= 2;
+	v2 >>= 6;
+//	if(v2 == 0) v2 = 1;
+	if(v2 > 1023) v2 = 1023; 
+//	if(v2 > 16384) v2 = 16384; 
 	return v2;
 }
 
@@ -121,6 +160,19 @@ void leds_set_driver(int val)
 
 void leds_set(int r, int g, int b)
 {
+	if(r == 0) NRF_GPIO->OUTSET = led_pin_mask[0];
+	else NRF_GPIO->OUTCLR = led_pin_mask[0];
+	if(g == 0) NRF_GPIO->OUTSET = led_pin_mask[1];
+	else NRF_GPIO->OUTCLR = led_pin_mask[1];
+	if(b == 0) NRF_GPIO->OUTSET = led_pin_mask[2];
+	else NRF_GPIO->OUTCLR = led_pin_mask[2];
+	
+//	led_pwm_vals[0] = val_to_cc(r);
+//	led_pwm_vals[1] = val_to_cc(g);
+//	led_pwm_vals[2] = val_to_cc(b);
+//	start_leds_pwm(0);
+	return;
+	
 	if(r == 0)
 	{
 		NRF_GPIO->OUTSET = led_pin_mask[0];
@@ -155,8 +207,13 @@ void leds_set(int r, int g, int b)
 
 void leds_pulse(int r, int g, int b, int length)
 {
-	leds_set(r, g, b);
-	led_pulse_length = 1 + length/32;
+	led_pwm_vals[0] = val_to_cc(r);
+	led_pwm_vals[1] = val_to_cc(g);
+	led_pwm_vals[2] = val_to_cc(b);
+	start_leds_pwm(length);
+	
+//	leds_set(r, g, b);
+//	led_pulse_length = 1 + length/32;
 }
 
 void leds_set_default_color(int r, int g, int b)

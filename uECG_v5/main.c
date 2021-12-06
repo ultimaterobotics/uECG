@@ -165,13 +165,13 @@ int main(void)
 	board_analog_on();
 	
 	leds_init(board_config.led_r, board_config.led_g, board_config.led_b, board_config.out_driver);
-	
+
 	for(int x = 0; x < 3; x++)
 	{
-		leds_set((x==0)*255, (x==1)*255, (x==2)*255);
+		leds_pulse((x==0)*255, (x==1)*255, (x==2)*255, 300);
 		delay_ms(300);
 	}
-	for(int x = 0; x < 8; x++)
+	if(0)for(int x = 0; x < 8; x++)
 	{
 		leds_pulse(0, 255*(board_config.version == 4), 255*(board_config.version == 5), 100);
 		delay_ms(200);
@@ -190,28 +190,20 @@ int main(void)
 	if(!mcp3911_is_ok())
 	{
 		init_ok = 0;
-		leds_set(255, 0, 0);
-		delay_ms(1000);
-		leds_set(0, 0, 0);
-		delay_ms(200);
-		leds_set(255, 0, 255);
-		delay_ms(1000);
-		leds_set(0, 0, 0);
-		delay_ms(200);
+		leds_pulse(255, 0, 0, 1000);
+		delay_ms(1200);
+		leds_pulse(255, 0, 255, 1000);
+		delay_ms(1200);
 	}
 	
 	bmi160_init(board_config.bmi_CS, board_config.bmi_INT);
 	if(!bmi160_is_ok())
 	{
 		init_ok = 0;
-		leds_set(255, 0, 0);
-		delay_ms(1000);
-		leds_set(0, 0, 0);
-		delay_ms(200);
-		leds_set(255, 255, 0);
-		delay_ms(1000);
-		leds_set(0, 0, 0);
-		delay_ms(200);
+		leds_pulse(255, 0, 0, 1000);
+		delay_ms(1200);
+		leds_pulse(255, 255, 0, 1000);
+		delay_ms(1200);
 	}
 //	leds_set(0, 255, 0);
 
@@ -226,7 +218,7 @@ int main(void)
 	{
 		for(int x = 0; x < 3; x++)
 		{
-			leds_pulse(0, 255, 0, 10);
+			leds_pulse(0, 255, 0, 200);
 			delay_ms(400);
 //			leds_set(0, 255, 0);
 //			leds_set(0, 0, 0);
