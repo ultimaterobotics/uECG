@@ -7,6 +7,7 @@ This firmware requires our bootloader (https://github.com/ultimaterobotics/uECG_
 
 ### Links to other parts of the project:
 * Bootloader: https://github.com/ultimaterobotics/uECG_bootloader
+* USB base receiver: https://github.com/ultimaterobotics/udevices_base
 * PCB design: https://github.com/ultimaterobotics/uECG_pcb
 * NodeJS app for receiving data on PC: https://github.com/ultimaterobotics/uECG_nodejs
 * Android app: https://github.com/ultimaterobotics/uECG_android 
