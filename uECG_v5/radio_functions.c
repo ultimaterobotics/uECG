@@ -52,6 +52,7 @@ void radio_set_mode(int mode)
 		NRF_RADIO->POWER = 0;
 		delay_ms(2);
 		rf_init(21, 250, 0);
+//		rf_init_ext(21, 250, 0, 0, 0, 0, 255);
 		rf_listen();
 	}
 	if(mode == radio_mode_direct64)

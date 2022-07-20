@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <math.h>
 #include "mcp3911.h"
-#include "bmi160.h"
+//#include "bmi160.h"
 #include "leds.h"
 #include "ecg_processor.h"
 #include "urf_timer.h"
@@ -15,6 +15,7 @@
 #include "board_config.h"
 #include "radio_functions.h"
 #include "spim_functions.h"
+#include "imu_processor.h"
 
 //openocd -f interface/stlink-v2.cfg -f target/nrf52.cfg
 //flash write_image erase _build/nrf52832_xxaa.hex
@@ -195,7 +196,7 @@ int main(void)
 		leds_pulse(255, 0, 255, 1000);
 		delay_ms(1200);
 	}
-	
+
 	bmi160_init(board_config.bmi_CS, board_config.bmi_INT);
 	if(!bmi160_is_ok())
 	{
@@ -273,12 +274,15 @@ int main(void)
 			}
 		}
 		if(mcp3911_read())
-			process_mcp_data();
-		else //lower priority - so doing it on cycles when we have no other things to handle
 		{
+			process_mcp_data();
+			//need to read BMI data right after MCP data are available so transfer won't be interrupted
 			if(ms - bmi.imu_read_time > 10)
 			{
 				bmi160_read();
+				process_imu_data(&bmi);
+				bmi.T = 0.25f*NRF_TEMP->TEMP;
+				NRF_TEMP->TASKS_START = 1;
 				bmi.imu_read_time = ms;
 				static int prev_bmi_ax = 0;
 				static int prev_bmi_ay = 0;
@@ -288,21 +292,30 @@ int main(void)
 				prev_bmi_ax = bmi.raX;
 				prev_bmi_ay = bmi.raY;
 				prev_bmi_az = bmi.raZ;
-				if(millis() - last_bmi_change > 30000) //impossible during normal operation: noise would be present anyway
+				if(ms - last_bmi_change > 500) //impossible during normal operation: noise would be present anyway
 				{
-					bmi160_normal_mode(); //reset settings
-					last_bmi_change = millis();
+					static int in_bmi_reinit = 0;
+					if(in_bmi_reinit)
+					{
+						if(bmi160_reinit_done()) in_bmi_reinit = 0;
+						last_bmi_change = ms;
+					}
+					else if(!bmi160_is_ok())
+					{
+						in_bmi_reinit = 1;
+						bmi160_reinit_start(); //reset settings
+					}
 				}
 			}
-			else if(ms - bmi.steps_read_time > 311)
+			else if(ms - bmi.imu_read_time > 5 && ms - bmi.steps_read_time > 311)
 			{
 				bmi.steps_read_time = ms;
 				bmi160_read_steps();
 			}
-			else if(ms - bmi.temp_read_time > 573)
+			else if(ms - bmi.imu_read_time > 5 && ms - bmi.temp_read_time > 573)
 			{
 				bmi.temp_read_time = ms;
-				bmi160_read_temp();
+//				bmi160_read_temp();
 			}
 		}
 		

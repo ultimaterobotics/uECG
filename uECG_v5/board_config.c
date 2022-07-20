@@ -235,7 +235,7 @@ void device_config_init()
 	if(1) //proper implementation pending - flash memory should be read and
 	{ //those values filled only if it doesn't contain proper configuration
 		dev_config.validation_word = 0xAA0EC90A;
-		dev_config.ecg_advertising_enabled = 1;
+		dev_config.ecg_advertising_enabled = 0;
 		dev_config.led_color_b = 250;
 		dev_config.led_color_g = 80;
 		dev_config.led_color_r = 220;

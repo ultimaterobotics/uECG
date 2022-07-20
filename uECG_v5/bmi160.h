@@ -60,6 +60,9 @@ void bmi160_acc_mode();
 void bmi160_lp_mode();
 int bmi_get_tap();
 
+void bmi160_reinit_start();
+int bmi160_reinit_done();
+
 void bmi160_read_steps();
 float bmi160_read_temp();
 

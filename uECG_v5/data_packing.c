@@ -4,6 +4,7 @@
 #include "ecg_processor.h"
 #include "bmi160.h"
 #include "urf_ble_peripheral.h"
+#include "urf_timer.h"
 
 uint8_t packet_id = 0;
 uint8_t data_packet[128];
@@ -563,8 +564,9 @@ int fill_imu_buf(uint8_t *buf)
 	int temp = bmi.T * 10;
 	buf[pp++] = temp>>8;
 	buf[pp++] = temp;
-	buf[pp++] = bmi.step_cnt>>8;
-	buf[pp++] = bmi.step_cnt;
+	int steps = bmi.step_cnt;
+	buf[pp++] = steps>>8;
+	buf[pp++] = steps;
 	return pp;
 }
 int fill_rr_buf(uint8_t *buf)
@@ -615,8 +617,9 @@ int fill_imu_rr_buf(uint8_t *buf)
 	if(temp < 0) temp = 0;
 	if(temp > 255) temp = 255;
 	buf[pp++] = temp;
-	buf[pp++] = bmi.step_cnt>>8;
-	buf[pp++] = bmi.step_cnt;
+	int steps = bmi.step_cnt;
+	buf[pp++] = steps>>8;
+	buf[pp++] = steps;
 	//12 bytes used	
 	buf[pp++] = ecg_params.rr_id;
 	uint16_t rr1 = get_RR(1);

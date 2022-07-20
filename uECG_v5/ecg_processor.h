@@ -52,10 +52,13 @@ typedef struct sHRVparams
 typedef struct sRdetector
 {
 	float avg_s;
+	float avg_l;
 	float avg_dv_p;
 	float avg_dv_n;
 	float dv_p_peak;
 	float dv_n_peak;
+	float p_peak_vraw;
+	float n_peak_vraw;
 	float p_peak_v;
 	float n_peak_v;
 	

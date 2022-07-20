@@ -2,8 +2,8 @@
 #include "board_config.h"
 #include "nrf.h"
 
-uint8_t spi_rx_buf[16];
-uint8_t spi_tx_buf[16];
+volatile uint8_t spi_rx_buf[32];
+volatile uint8_t spi_tx_buf[32];
 volatile uint8_t spi_busy = 0;
 volatile uint8_t spi_need_callback = 0;
 uint32_t spi_cs_mask = 0;
@@ -17,7 +17,7 @@ void spi_init()
 	NRF_SPIM0->PSEL.MOSI = board_config.spi_COPI;
 	NRF_SPIM0->PSEL.MISO = board_config.spi_CIPO;
 	
-	NRF_SPIM0->FREQUENCY = 0x80000000; 
+	NRF_SPIM0->FREQUENCY = 0x80000000;
 //	NRF_SPI0->FREQUENCY = 0x02000000; 
 	/* 0x02000000 125 kbps
 	 * 0x04000000 250 kbps
